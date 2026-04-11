@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>URO-INK</title>
+</head>
+
+<body style="text-align:center;">
+
+<h2>Deteksi pH Urin</h2>
+
+<button onclick="startCamera()">Buka Kamera</button>
+
+<br><br>
+
+<video id="video" width="300" autoplay></video>
+
+<br><br>
+
+<button onclick="capture()">Ambil</button>
+
+<canvas id="canvas"></canvas>
+
+<h3 id="hasil"></h3>
+
+<script>
+function startCamera(){
+ navigator.mediaDevices.getUserMedia({video:true})
+ .then(s=>video.srcObject=s);
+}
+
+function capture(){
+ canvas.width=video.videoWidth;
+ canvas.height=video.videoHeight;
+
+ let ctx=canvas.getContext("2d");
+ ctx.drawImage(video,0,0);
+
+ let d=ctx.getImageData(150,150,1,1).data;
+
+ document.getElementById("hasil").innerText =
+ "RGB: "+d[0]+","+d[1]+","+d[2];
+}
+</script>
+
+</body>
+</html>
