@@ -9,7 +9,6 @@
   <style>
     :root {
       --primary: #0ea5b7;
-      --primary-dark: #087f8f;
       --green: #22c55e;
       --orange: #f59e0b;
       --red: #ef4444;
@@ -272,44 +271,22 @@
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
     }
 
-    .badge-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin: 14px 0;
-    }
-
-    .badge {
-      padding: 9px 14px;
-      border-radius: 999px;
-      font-weight: bold;
-      background: #f3f4f6;
-      border: 1px solid var(--border);
-      font-size: 14px;
-    }
-
-    .badge.ok {
-      background: #dcfce7;
-      color: #166534;
-      border-color: #bbf7d0;
-    }
-
-    .badge.mid {
-      background: #fef9c3;
-      color: #854d0e;
-      border-color: #fde68a;
-    }
-
-    .badge.warn {
-      background: #fee2e2;
-      color: #991b1b;
-      border-color: #fecaca;
-    }
-
     .main-result {
       font-size: 20px;
       margin-top: 12px;
       line-height: 1.7;
+    }
+
+    .main-result p {
+      margin: 10px 0;
+    }
+
+    .result-note {
+      background: #f0f9ff;
+      border-left: 5px solid var(--primary);
+      padding: 14px 16px;
+      border-radius: 12px;
+      margin-top: 14px;
     }
 
     .small {
@@ -340,6 +317,7 @@
       border-bottom: 1px solid var(--border);
       padding: 10px;
       text-align: left;
+      vertical-align: top;
     }
 
     th {
@@ -370,6 +348,15 @@
       .main-result {
         font-size: 17px;
       }
+
+      table {
+        font-size: 12px;
+      }
+
+      th,
+      td {
+        padding: 7px;
+      }
     }
   </style>
 </head>
@@ -381,7 +368,7 @@
 
   <p class="intro">
     Sistem membaca warna strip dari area bingkai yang dapat digeser dan diubah ukurannya.
-    <b>Bunga Telang</b> digunakan sebagai indikator utama estimasi pH,
+    <b>Bunga Telang</b> digunakan sebagai indikator utama estimasi pH urin,
     sedangkan <b>Kunyit</b> digunakan sebagai indikator pendukung kecenderungan basa.
   </p>
 
@@ -461,10 +448,11 @@
       <div class="tips">
         <b>Tips pemakaian:</b>
         <ul>
+          <li>Gunakan sampel urin segar.</li>
           <li>Gunakan cahaya stabil dan latar polos.</li>
           <li>Simpan baseline dari strip yang belum dicelup.</li>
           <li>Ambil foto sesudah reaksi dengan posisi yang sama.</li>
-          <li>Geser dan sesuaikan ukuran bingkai sampai pas pada area warna strip.</li>
+          <li>Sesuaikan ukuran bingkai dengan area warna strip.</li>
         </ul>
       </div>
     </aside>
@@ -479,171 +467,124 @@
 
   <script>
     /*
-      Catatan:
-      Data jurnal Telang yang kamu kirim memuat pH, sampel, panjang gelombang maksimum,
-      absorbansi, absorbed color, dan complementary color.
-      Karena jurnal tersebut tidak memberi angka RGB langsung, nilai rgb di bawah ini
-      adalah pendekatan digital dari warna complementary color agar sistem tetap bisa
-      membandingkan warna sampel.
+      Acuan Bunga Telang menggunakan nilai Mark RGB dari jurnal:
+      Table 2. Color component values and RGB color intensity of telang flower extract.
+      Nilai "Blank" digunakan sebagai kontrol/baseline jurnal, bukan sebagai hasil pH.
     */
 
     const TELANG_REFERENCES = [
       {
+        ph: "Blank",
+        sample: "Blank",
+        rgb: [174.238, 176.207, 175.23],
+        kategori: "Blank / kontrol",
+        warna: "Abu-abu netral"
+      },
+      {
         ph: 1,
-        sample: "HCl 0,1 M",
-        wavelength: 542,
-        absorbance: 0.4603,
-        absorbedColor: "Green",
-        complementaryColor: "Purple",
-        rgb: [128, 0, 128],
+        sample: "pH 1",
+        rgb: [151.96, 45.19, 98.92],
         kategori: "Asam sangat kuat",
-        warna: "Purple"
+        warna: "Ungu kemerahan"
       },
       {
         ph: 2,
-        sample: "HCl 0,01 M",
-        wavelength: 550,
-        absorbance: 0.41059,
-        absorbedColor: "Green",
-        complementaryColor: "Purple",
-        rgb: [138, 20, 145],
+        sample: "pH 2",
+        rgb: [118.103, 47.261, 125.062],
         kategori: "Asam sangat kuat",
-        warna: "Purple"
+        warna: "Ungu"
       },
       {
         ph: 3,
-        sample: "HCl 0,001 M",
-        wavelength: 572,
-        absorbance: 0.38021,
-        absorbedColor: "Yellow-Green",
-        complementaryColor: "Violet",
-        rgb: [148, 65, 190],
+        sample: "pH 3",
+        rgb: [110.324, 86.336, 180.505],
         kategori: "Asam kuat",
-        warna: "Violet"
+        warna: "Ungu kebiruan"
       },
       {
         ph: 4,
-        sample: "HCl 0,0001 M",
-        wavelength: 572,
-        absorbance: 0.41137,
-        absorbedColor: "Yellow-Green",
-        complementaryColor: "Violet",
-        rgb: [138, 60, 185],
+        sample: "pH 4",
+        rgb: [112.278, 85.278, 180.278],
         kategori: "Asam kuat",
-        warna: "Violet"
+        warna: "Ungu kebiruan"
       },
       {
         ph: 5,
-        sample: "HCl 0,00001 M",
-        wavelength: 572,
-        absorbance: 0.50805,
-        absorbedColor: "Yellow-Green",
-        complementaryColor: "Violet",
-        rgb: [125, 55, 175],
+        sample: "pH 5",
+        rgb: [87.103, 84.361, 185.425],
         kategori: "Asam",
-        warna: "Violet"
+        warna: "Biru keunguan"
       },
       {
         ph: 6,
-        sample: "HCl 0,000001 M",
-        wavelength: 616,
-        absorbance: 0.5342,
-        absorbedColor: "Red",
-        complementaryColor: "Blue-Green",
-        rgb: [0, 120, 150],
+        sample: "pH 6",
+        rgb: [80.106, 82.311, 184.037],
         kategori: "Asam lemah",
-        warna: "Blue-Green"
+        warna: "Biru keunguan"
       },
       {
         ph: 7,
-        sample: "H2O",
-        wavelength: 620,
-        absorbance: 0.5762,
-        absorbedColor: "Red",
-        complementaryColor: "Blue-Green",
-        rgb: [0, 135, 160],
+        sample: "pH 7",
+        rgb: [1.93, 83.29, 174.56],
         kategori: "Netral",
-        warna: "Blue-Green"
+        warna: "Biru"
       },
       {
         ph: 8,
-        sample: "NaOH 0,000001 M",
-        wavelength: 620,
-        absorbance: 0.62785,
-        absorbedColor: "Red",
-        complementaryColor: "Blue-Green",
-        rgb: [0, 145, 165],
+        sample: "pH 8",
+        rgb: [0.974, 78.937, 164.084],
         kategori: "Basa ringan",
-        warna: "Blue-Green"
+        warna: "Biru"
       },
       {
         ph: 9,
-        sample: "NaOH 0,00001 M",
-        wavelength: 626,
-        absorbance: 0.64036,
-        absorbedColor: "Red",
-        complementaryColor: "Blue-Green",
-        rgb: [0, 150, 155],
+        sample: "pH 9",
+        rgb: [0.434, 90.622, 149.304],
         kategori: "Basa ringan",
-        warna: "Blue-Green"
+        warna: "Biru kehijauan"
       },
       {
         ph: 10,
-        sample: "NaOH 0,0001 M",
-        wavelength: 626,
-        absorbance: 0.55047,
-        absorbedColor: "Red",
-        complementaryColor: "Blue-Green",
-        rgb: [0, 140, 150],
+        sample: "pH 10",
+        rgb: [0.53, 95.649, 161.561],
         kategori: "Basa",
-        warna: "Blue-Green"
+        warna: "Biru kehijauan"
       },
       {
         ph: 11,
-        sample: "NaOH 0,001 M",
-        wavelength: 400,
-        absorbance: 0.67913,
-        absorbedColor: "Violet",
-        complementaryColor: "Yellow-Green",
-        rgb: [155, 190, 60],
+        sample: "pH 11",
+        rgb: [56.453, 96.465, 85.499],
         kategori: "Basa kuat",
-        warna: "Yellow-Green"
+        warna: "Hijau kebiruan"
       },
       {
         ph: 12,
-        sample: "NaOH 0,01 M",
-        wavelength: 400,
-        absorbance: 0.81275,
-        absorbedColor: "Violet",
-        complementaryColor: "Yellow-Green",
-        rgb: [170, 205, 50],
+        sample: "pH 12",
+        rgb: [79.847, 99.336, 87.357],
         kategori: "Basa sangat kuat",
-        warna: "Yellow-Green"
+        warna: "Hijau"
       },
       {
         ph: 13,
-        sample: "NaOH 0,1 M",
-        wavelength: 400,
-        absorbance: 0.68581,
-        absorbedColor: "Violet",
-        complementaryColor: "Yellow-Green",
-        rgb: [185, 210, 45],
+        sample: "pH 13",
+        rgb: [165.485, 166.534, 64.19],
         kategori: "Basa sangat kuat",
-        warna: "Yellow-Green"
+        warna: "Kuning kehijauan"
       },
       {
         ph: 14,
-        sample: "NaOH 1 M",
-        wavelength: 400,
-        absorbance: 0.73081,
-        absorbedColor: "Violet",
-        complementaryColor: "Yellow-Green",
-        rgb: [195, 215, 40],
+        sample: "pH 14",
+        rgb: [186.171, 157.69, 0.372],
         kategori: "Basa sangat kuat",
-        warna: "Yellow-Green"
+        warna: "Kuning"
       }
     ];
 
+    /*
+      Acuan kunyit masih bersifat pendukung.
+      Jika nanti ada data RGB standar kunyit dari test kit URO-INK,
+      bagian ini bisa diganti agar lebih akurat.
+    */
     const KUNYIT_REFERENCES = [
       {
         key: "asam-netral",
@@ -671,7 +612,7 @@
       }
     ];
 
-    const TELANG_BLANK = [174, 176, 175];
+    const TELANG_BLANK = [174.238, 176.207, 175.23];
     const KUNYIT_BLANK = [220, 195, 72];
 
     const previewBox = document.getElementById("previewBox");
@@ -688,7 +629,6 @@
     const resultSection = document.getElementById("resultSection");
     const workCanvas = document.getElementById("workCanvas");
 
-    let currentInputMode = "upload";
     let currentFacingMode = "environment";
     let cameraStream = null;
     let lastMainRGB = [0, 0, 0];
@@ -701,7 +641,6 @@
     let baseline = loadBaseline();
 
     function setInputMode(mode) {
-      currentInputMode = mode;
       document.getElementById("cameraButtons").style.display = mode === "camera" ? "flex" : "none";
       updateROIVisibility();
     }
@@ -719,7 +658,6 @@
         previewImage.style.display = "block";
         cameraVideo.style.display = "none";
         emptyPreview.style.display = "none";
-        currentInputMode = "upload";
         updateROIVisibility();
       };
 
@@ -916,7 +854,6 @@
       emptyPreview.style.display = "none";
 
       stopCamera();
-      currentInputMode = "upload";
       updateROIVisibility();
     }
 
@@ -929,8 +866,7 @@
         return {
           element: previewImage,
           width: previewImage.naturalWidth,
-          height: previewImage.naturalHeight,
-          type: "image"
+          height: previewImage.naturalHeight
         };
       }
 
@@ -938,8 +874,7 @@
         return {
           element: cameraVideo,
           width: cameraVideo.videoWidth,
-          height: cameraVideo.videoHeight,
-          type: "video"
+          height: cameraVideo.videoHeight
         };
       }
 
@@ -1097,7 +1032,8 @@
       if (!rawRgb) return null;
 
       const correctedRgb = applyBaselineCorrection(rawRgb, "telang");
-      const match = findNearestReference(correctedRgb, TELANG_REFERENCES);
+      const telangPhReferences = TELANG_REFERENCES.filter(item => item.ph !== "Blank");
+      const match = findNearestReference(correctedRgb, telangPhReferences);
 
       return {
         indicator: "Bunga Telang",
@@ -1165,123 +1101,172 @@
       rgbText.textContent = `(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
     }
 
-    function getBadgeClass(status) {
-      if (status === "Cocok") return "ok";
-      if (status === "Keyakinan sedang") return "mid";
-      return "warn";
+    function getTelangUrineSummary(ph) {
+      if (ph <= 5) {
+        return {
+          estimate: `pH ${ph}`,
+          interpretation: "Hasil menunjukkan urin cenderung asam.",
+          note: "Urin yang cenderung asam dapat dipengaruhi oleh makanan, minuman, obat, atau kondisi tubuh tertentu. Jika hasil ini muncul berulang atau disertai keluhan, sebaiknya lakukan pemeriksaan ulang atau konsultasi dengan tenaga kesehatan."
+        };
+      }
+
+      if (ph <= 7) {
+        return {
+          estimate: `pH ${ph}`,
+          interpretation: "Hasil menunjukkan urin berada pada rentang asam lemah hingga netral.",
+          note: "Rentang ini umumnya lebih mendekati kondisi urin yang wajar. Tetap perhatikan cara penggunaan test kit dan gunakan sampel urin segar agar hasil lebih baik."
+        };
+      }
+
+      if (ph <= 10) {
+        return {
+          estimate: `pH ${ph}`,
+          interpretation: "Hasil menunjukkan urin cenderung basa.",
+          note: "Urin yang cenderung basa dapat dipengaruhi oleh pola makan, sampel urin yang terlalu lama didiamkan, atau kondisi tertentu. Jika hasil terus berulang, pertimbangkan pemeriksaan lanjutan."
+        };
+      }
+
+      return {
+        estimate: `pH ${ph}`,
+        interpretation: "Hasil menunjukkan urin sangat basa.",
+        note: "Nilai ini tergolong cukup tinggi. Disarankan untuk mengulang tes menggunakan sampel urin segar. Jika hasil tetap sama atau disertai keluhan, sebaiknya konsultasikan dengan tenaga kesehatan."
+      };
     }
 
-    function renderTelangResult(telang) {
-      resultSection.innerHTML = `
-        <h2>Hasil Utama</h2>
+    function getKunyitUrineSummary(kunyit) {
+      if (kunyit.best.key === "basa" || kunyit.best.key === "basa-kuat") {
+        return {
+          estimate: "Tidak ditentukan spesifik",
+          interpretation: "Indikator kunyit menunjukkan kecenderungan urin ke arah basa.",
+          note: "Kunyit digunakan sebagai indikator pendukung, bukan penentu utama nilai pH. Untuk membaca pH urin secara utama, gunakan hasil Bunga Telang atau mode Otomatis."
+        };
+      }
 
-        <div class="badge-row">
-          <span class="badge ${getBadgeClass(telang.status)}">${telang.status}</span>
-          <span class="badge">pH ${telang.best.ph}</span>
-          <span class="badge">${telang.best.kategori}</span>
-          <span class="badge">Keyakinan ${telang.confidenceValue}%</span>
-        </div>
-
-        <div class="main-result">
-          <b>Indikator:</b> Bunga Telang<br>
-          <b>Warna acuan terdekat:</b> ${telang.best.warna}<br>
-          <b>Estimasi pH:</b> pH ${telang.best.ph}<br>
-          <b>Interpretasi:</b> Sampel mendekati kategori <b>${telang.best.kategori}</b>.
-        </div>
-
-        ${renderDetailTelang(telang)}
-        ${renderReferenceDetails()}
-      `;
-    }
-
-    function renderKunyitResult(kunyit) {
-      resultSection.innerHTML = `
-        <h2>Hasil Utama</h2>
-
-        <div class="badge-row">
-          <span class="badge ${getBadgeClass(kunyit.status)}">${kunyit.status}</span>
-          <span class="badge">${kunyit.best.kategori}</span>
-          <span class="badge">Keyakinan ${kunyit.confidenceValue}%</span>
-        </div>
-
-        <div class="main-result">
-          <b>Indikator:</b> Kunyit<br>
-          <b>Warna terdekat:</b> ${kunyit.best.warna}<br>
-          <b>Kategori:</b> ${kunyit.best.kategori}<br>
-          <b>Interpretasi:</b> Kunyit digunakan sebagai indikator pendukung untuk melihat kecenderungan basa.
-        </div>
-
-        ${renderDetailKunyit(kunyit)}
-        ${renderReferenceDetails()}
-      `;
-    }
-
-    function renderAutomaticResult(telang, kunyit) {
-      const combined = combineAutomaticResult(telang, kunyit);
-
-      resultSection.innerHTML = `
-        <h2>Hasil Utama</h2>
-
-        <div class="badge-row">
-          <span class="badge ${getBadgeClass(combined.status)}">${combined.status}</span>
-          <span class="badge">pH ${telang.best.ph}</span>
-          <span class="badge">${telang.best.kategori}</span>
-          <span class="badge">Validasi: ${combined.validation}</span>
-        </div>
-
-        <div class="main-result">
-          <b>Hasil gabungan:</b> pH ${telang.best.ph} - ${telang.best.kategori}<br>
-          <b>Indikator utama:</b> Bunga Telang<br>
-          <b>Indikator pendukung:</b> Kunyit<br>
-          <b>Interpretasi:</b> ${combined.message}
-        </div>
-
-        <details>
-          <summary>Detail hasil Telang dan Kunyit</summary>
-          ${renderDetailTelang(telang)}
-          ${renderDetailKunyit(kunyit)}
-        </details>
-
-        ${renderReferenceDetails()}
-      `;
+      return {
+        estimate: "Tidak ditentukan spesifik",
+        interpretation: "Indikator kunyit belum menunjukkan kecenderungan basa yang kuat.",
+        note: "Hasil kunyit ini digunakan sebagai pendukung pembacaan. Untuk pembacaan pH utama, gunakan indikator Bunga Telang atau mode Otomatis."
+      };
     }
 
     function combineAutomaticResult(telang, kunyit) {
       const ph = telang.best.ph;
       const kunyitKey = kunyit.best.key;
 
-      let status = "Cocok";
       let validation = "Mendukung";
-      let message = "";
 
       const kunyitBasa = kunyitKey === "basa" || kunyitKey === "basa-kuat";
       const kunyitNonBasa = kunyitKey === "asam-netral" || kunyitKey === "transisi";
 
       if (ph >= 8 && kunyitBasa) {
-        status = "Cocok";
         validation = "Mendukung";
-        message = "Bunga Telang menunjukkan kecenderungan basa dan Kunyit juga mendukung arah basa.";
       } else if (ph <= 7 && kunyitNonBasa) {
-        status = "Cocok";
         validation = "Mendukung";
-        message = "Bunga Telang menunjukkan asam sampai netral dan Kunyit tidak menunjukkan kecenderungan basa kuat.";
       } else if (ph >= 8 && kunyitNonBasa) {
-        status = "Keyakinan sedang";
         validation = "Kurang kuat";
-        message = "Bunga Telang mengarah ke basa, tetapi Kunyit belum menunjukkan perubahan basa yang kuat. Disarankan ulangi pembacaan dengan cahaya stabil.";
       } else {
-        status = "Perlu cek ulang";
         validation = "Tidak konsisten";
-        message = "Hasil Telang dan Kunyit belum konsisten. Periksa posisi strip, pencahayaan, dan baseline.";
       }
 
       if (telang.confidenceValue < 50) {
-        status = "Perlu cek ulang";
         validation = "Rendah";
-        message = "Kecocokan warna Telang rendah. Hasil belum cukup kuat untuk dijadikan kesimpulan.";
       }
 
-      return { status, validation, message };
+      return { validation };
+    }
+
+    function getAutomaticUrineSummary(telang, kunyit, combined) {
+      const telangInfo = getTelangUrineSummary(telang.best.ph);
+
+      let extraNote = "";
+
+      if (combined.validation === "Mendukung") {
+        extraNote = "Hasil kunyit mendukung pembacaan utama.";
+      } else if (combined.validation === "Kurang kuat") {
+        extraNote = "Hasil kunyit belum mendukung dengan kuat, sehingga pembacaan sebaiknya diulang bila diperlukan.";
+      } else {
+        extraNote = "Hasil kunyit belum konsisten dengan pembacaan utama, sehingga disarankan untuk mengulang tes dengan sampel urin segar dan pencahayaan yang baik.";
+      }
+
+      return {
+        estimate: `pH ${telang.best.ph}`,
+        interpretation: telangInfo.interpretation,
+        note: `${telangInfo.note} ${extraNote}`
+      };
+    }
+
+    function renderTelangResult(telang) {
+      const info = getTelangUrineSummary(telang.best.ph);
+
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+
+        <div class="main-result">
+          <p><b>Indikator:</b> Bunga Telang</p>
+          <p><b>Estimasi pH:</b> ${info.estimate}</p>
+          <p><b>Interpretasi:</b> ${info.interpretation}</p>
+          <div class="result-note">
+            <b>Catatan / Kesimpulan:</b><br>
+            ${info.note}
+          </div>
+        </div>
+
+        <details>
+          <summary>Lihat detail teknis</summary>
+          ${renderDetailTelang(telang)}
+          ${renderReferenceDetails()}
+        </details>
+      `;
+    }
+
+    function renderKunyitResult(kunyit) {
+      const info = getKunyitUrineSummary(kunyit);
+
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+
+        <div class="main-result">
+          <p><b>Indikator:</b> Kunyit</p>
+          <p><b>Estimasi pH:</b> ${info.estimate}</p>
+          <p><b>Interpretasi:</b> ${info.interpretation}</p>
+          <div class="result-note">
+            <b>Catatan / Kesimpulan:</b><br>
+            ${info.note}
+          </div>
+        </div>
+
+        <details>
+          <summary>Lihat detail teknis</summary>
+          ${renderDetailKunyit(kunyit)}
+          ${renderReferenceDetails()}
+        </details>
+      `;
+    }
+
+    function renderAutomaticResult(telang, kunyit) {
+      const combined = combineAutomaticResult(telang, kunyit);
+      const info = getAutomaticUrineSummary(telang, kunyit, combined);
+
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+
+        <div class="main-result">
+          <p><b>Indikator:</b> Bunga Telang + Kunyit</p>
+          <p><b>Estimasi pH:</b> ${info.estimate}</p>
+          <p><b>Interpretasi:</b> ${info.interpretation}</p>
+          <div class="result-note">
+            <b>Catatan / Kesimpulan:</b><br>
+            ${info.note}
+          </div>
+        </div>
+
+        <details>
+          <summary>Lihat detail teknis</summary>
+          ${renderDetailTelang(telang)}
+          ${renderDetailKunyit(kunyit)}
+          ${renderReferenceDetails()}
+        </details>
+      `;
     }
 
     function renderDetailTelang(telang) {
@@ -1291,14 +1276,10 @@
           <p>
             <b>RGB mentah:</b> (${telang.rawRgb.join(", ")})<br>
             <b>RGB terkoreksi:</b> (${telang.correctedRgb.join(", ")})<br>
-            <b>RGB acuan digital:</b> (${telang.best.rgb.join(", ")})<br>
+            <b>RGB acuan jurnal:</b> (${telang.best.rgb.join(", ")})<br>
             <b>pH:</b> ${telang.best.ph}<br>
-            <b>Sampel acuan:</b> ${telang.best.sample}<br>
-            <b>λ maksimum:</b> ${telang.best.wavelength} nm<br>
-            <b>Absorbansi:</b> ${telang.best.absorbance}<br>
-            <b>Absorbed color:</b> ${telang.best.absorbedColor}<br>
-            <b>Complementary color:</b> ${telang.best.complementaryColor}<br>
             <b>Kategori:</b> ${telang.best.kategori}<br>
+            <b>Warna acuan:</b> ${telang.best.warna}<br>
             <b>Keyakinan:</b> ${telang.confidenceValue}%
           </p>
         </div>
@@ -1326,35 +1307,32 @@
         <details>
           <summary>Lihat acuan indikator</summary>
 
-          <h3>Acuan Bunga Telang Berdasarkan Jurnal</h3>
+          <h3>Acuan RGB Bunga Telang Berdasarkan Jurnal</h3>
           <p class="small">
-            Tabel ini mengikuti data jurnal yang memuat pH, sampel, panjang gelombang maksimum,
-            absorbansi, absorbed color, dan complementary color. Angka RGB digital digunakan
-            sebagai pendekatan sistem untuk proses pembacaan warna.
+            Data Telang memakai nilai Mark RGB dari jurnal. Nilai Blank digunakan sebagai kontrol,
+            sehingga tidak dihitung sebagai hasil pH.
           </p>
 
           <table>
             <thead>
               <tr>
                 <th>pH</th>
-                <th>Sampel</th>
-                <th>λ Maks</th>
-                <th>Absorbansi</th>
-                <th>Absorbed Color</th>
-                <th>Complementary Color</th>
-                <th>RGB Digital</th>
+                <th>Kategori</th>
+                <th>Warna</th>
+                <th>Red</th>
+                <th>Green</th>
+                <th>Blue</th>
               </tr>
             </thead>
             <tbody>
               ${TELANG_REFERENCES.map(item => `
                 <tr>
-                  <td>pH ${item.ph}</td>
-                  <td>${item.sample}</td>
-                  <td>${item.wavelength} nm</td>
-                  <td>${item.absorbance}</td>
-                  <td>${item.absorbedColor}</td>
-                  <td>${item.complementaryColor}</td>
-                  <td>(${item.rgb.join(", ")})</td>
+                  <td>${item.ph === "Blank" ? "Blank" : "pH " + item.ph}</td>
+                  <td>${item.kategori}</td>
+                  <td>${item.warna}</td>
+                  <td>${item.rgb[0]}</td>
+                  <td>${item.rgb[1]}</td>
+                  <td>${item.rgb[2]}</td>
                 </tr>
               `).join("")}
             </tbody>
