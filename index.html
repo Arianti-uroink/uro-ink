@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <title>URO-INK Reader</title>
+
   <style>
     :root {
       --primary: #0ea5b7;
@@ -18,7 +20,9 @@
       --border: #e5e7eb;
     }
 
-    * { box-sizing: border-box; }
+    * {
+      box-sizing: border-box;
+    }
 
     body {
       margin: 0;
@@ -28,12 +32,36 @@
       padding: 28px;
     }
 
-    h1 { margin-bottom: 6px; letter-spacing: 2px; font-size: 32px; }
-    h2 { margin-top: 0; font-size: 26px; }
-    p { line-height: 1.6; }
+    h1 {
+      margin-bottom: 6px;
+      letter-spacing: 2px;
+      font-size: 32px;
+    }
 
-    .subtitle { font-weight: bold; font-size: 18px; margin-bottom: 16px; }
-    .intro { max-width: 1100px; color: #374151; margin-bottom: 32px; }
+    h2 {
+      margin-top: 0;
+      font-size: 26px;
+    }
+
+    h3 {
+      margin-bottom: 8px;
+    }
+
+    p {
+      line-height: 1.6;
+    }
+
+    .subtitle {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 16px;
+    }
+
+    .intro {
+      max-width: 1100px;
+      color: #374151;
+      margin-bottom: 32px;
+    }
 
     .layout {
       display: grid;
@@ -48,109 +76,733 @@
       border-radius: 18px;
       padding: 24px;
       box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
-      position: relative;
     }
 
-    /* ROI strip */
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    button,
+    .file-label {
+      border: none;
+      padding: 12px 18px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: bold;
+      transition: 0.2s;
+      display: inline-block;
+    }
+
+    button:hover,
+    .file-label:hover {
+      opacity: 0.9;
+      transform: translateY(-1px);
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-green {
+      background: #16a34a;
+      color: white;
+    }
+
+    .btn-orange {
+      background: #f97316;
+      color: white;
+    }
+
+    .btn-red {
+      background: #dc2626;
+      color: white;
+    }
+
+    .btn-muted {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    input[type="file"] {
+      display: none;
+    }
+
+    select {
+      width: 100%;
+      padding: 13px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      font-size: 16px;
+      background: white;
+    }
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    .preview-box {
+      position: relative;
+      width: 100%;
+      min-height: 300px;
+      background: #111827;
+      border-radius: 18px;
+      overflow: hidden;
+      margin-top: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    #previewImage,
+    #cameraVideo {
+      display: none;
+      max-width: 100%;
+      width: 100%;
+      height: auto;
+      user-select: none;
+    }
+
+    .empty-preview {
+      color: white;
+      text-align: center;
+      padding: 20px;
+    }
+
     .roi {
       position: absolute;
-      border: 3px dashed red;
-      background-color: rgba(255, 0, 0, 0.05);
+      border: 3px solid #22c55e;
+      border-radius: 14px;
+      background: rgba(34, 197, 94, 0.08);
       cursor: move;
       touch-action: none;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.08);
     }
 
-    .roi .resize-handle {
+    .roi::before {
+      content: attr(data-label);
       position: absolute;
-      right: -9px;
-      bottom: -9px;
-      width: 20px;
-      height: 20px;
+      top: -36px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111827;
+      color: white;
+      font-size: 13px;
+      padding: 7px 12px;
+      border-radius: 9px;
+      white-space: nowrap;
+      font-weight: bold;
+    }
+
+    .roi.telang {
+      border-color: #22c55e;
+      background: rgba(34, 197, 94, 0.08);
+    }
+
+    .roi.kunyit {
+      border-color: #f59e0b;
+      background: rgba(245, 158, 11, 0.12);
+    }
+
+    .resize-handle {
+      position: absolute;
+      right: -11px;
+      bottom: -11px;
+      width: 24px;
+      height: 24px;
       background: white;
       border: 3px solid currentColor;
       border-radius: 50%;
       cursor: nwse-resize;
       touch-action: none;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
     }
 
-    .roi.telang .resize-handle { color: #22c55e; }
-    .roi.kunyit .resize-handle { color: #f59e0b; }
+    .roi.telang .resize-handle {
+      color: #22c55e;
+    }
+
+    .roi.kunyit .resize-handle {
+      color: #f59e0b;
+    }
+
+    .rgb-preview {
+      width: 84px;
+      height: 84px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: #111827;
+      margin-right: 16px;
+      flex-shrink: 0;
+    }
+
+    .rgb-row {
+      display: flex;
+      align-items: center;
+      margin-top: 16px;
+      gap: 8px;
+    }
+
+    .baseline-status {
+      margin-top: 10px;
+      color: var(--gray);
+    }
+
+    .tips {
+      margin-top: 22px;
+      color: #374151;
+    }
+
+    .tips li {
+      margin-bottom: 8px;
+    }
+
+    .result-card {
+      margin-top: 24px;
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    .badge-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .badge {
+      padding: 9px 14px;
+      border-radius: 999px;
+      font-weight: bold;
+      background: #f3f4f6;
+      border: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .badge.ok {
+      background: #dcfce7;
+      color: #166534;
+      border-color: #bbf7d0;
+    }
+
+    .badge.mid {
+      background: #fef9c3;
+      color: #854d0e;
+      border-color: #fde68a;
+    }
+
+    .badge.warn {
+      background: #fee2e2;
+      color: #991b1b;
+      border-color: #fecaca;
+    }
+
+    .main-result {
+      font-size: 20px;
+      margin-top: 12px;
+      line-height: 1.7;
+    }
+
+    .small {
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    details {
+      margin-top: 16px;
+      border-top: 1px solid var(--border);
+      padding-top: 14px;
+    }
+
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+    }
 
     table {
-      border-collapse: collapse;
       width: 100%;
-      margin-top: 16px;
+      border-collapse: collapse;
+      margin-top: 12px;
+      font-size: 14px;
     }
-    table, th, td {
-      border: 1px solid #444;
+
+    th,
+    td {
+      border-bottom: 1px solid var(--border);
+      padding: 10px;
+      text-align: left;
     }
-    th, td { padding: 8px; text-align: center; }
-    th { background-color: #ddd; }
+
+    th {
+      background: #f9fafb;
+    }
+
+    #workCanvas {
+      display: none;
+    }
+
+    @media (max-width: 900px) {
+      body {
+        padding: 16px;
+      }
+
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      h1 {
+        font-size: 26px;
+      }
+
+      .preview-box {
+        min-height: 230px;
+      }
+
+      .main-result {
+        font-size: 17px;
+      }
+    }
   </style>
 </head>
+
 <body>
-
   <h1>URO-INK Reader</h1>
-  <div class="layout">
-    <div class="card" id="previewBox">
-      <div id="roiTelang" class="roi telang" data-label="Area Bunga Telang">
-        <div class="resize-handle"></div>
-      </div>
-      <div id="roiKunyit" class="roi kunyit" data-label="Area Kunyit">
-        <div class="resize-handle"></div>
-      </div>
-      <p>Gambar Uji Warna Telang & Kunyit</p>
-    </div>
 
-    <div class="card">
-      <h2>Data Telang Berdasarkan Jurnal</h2>
-      <div id="telangTable"></div>
-    </div>
+  <div class="subtitle">Urology Indicator Natural Kit Strip</div>
+
+  <p class="intro">
+    Sistem membaca warna strip dari area bingkai yang dapat digeser dan diubah ukurannya.
+    <b>Bunga Telang</b> digunakan sebagai indikator utama estimasi pH,
+    sedangkan <b>Kunyit</b> digunakan sebagai indikator pendukung kecenderungan basa.
+  </p>
+
+  <div class="layout">
+    <section class="card">
+      <h2>1. Input Gambar</h2>
+
+      <div class="button-row">
+        <label class="file-label btn-primary" for="imageInput">Upload gambar</label>
+        <button class="btn-muted" onclick="setInputMode('camera')">Kamera</button>
+      </div>
+
+      <input id="imageInput" type="file" accept="image/*" />
+
+      <div class="button-row" id="cameraButtons" style="display:none;">
+        <button class="btn-green" onclick="startCamera('environment')">Buka kamera belakang</button>
+        <button class="btn-orange" onclick="switchCamera()">Ganti kamera</button>
+        <button class="btn-orange" onclick="toggleFlash()">Flash</button>
+        <button class="btn-primary" onclick="takeSnapshot()">Ambil snapshot</button>
+        <button class="btn-red" onclick="stopCamera()">Matikan kamera</button>
+      </div>
+
+      <p class="small">
+        Geser bingkai sampai tepat mengenai area warna strip.
+        Tarik bulatan kecil di pojok kanan bawah bingkai untuk memperbesar atau memperkecil area baca.
+      </p>
+
+      <div class="preview-box" id="previewBox">
+        <div class="empty-preview" id="emptyPreview">
+          Upload gambar atau buka kamera terlebih dahulu.
+        </div>
+
+        <img id="previewImage" alt="Preview gambar" />
+        <video id="cameraVideo" autoplay playsinline></video>
+
+        <div id="roiTelang" class="roi telang" data-label="Area Bunga Telang">
+          <div class="resize-handle"></div>
+        </div>
+
+        <div id="roiKunyit" class="roi kunyit" data-label="Area Kunyit">
+          <div class="resize-handle"></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="card">
+      <h2>2. Pengaturan</h2>
+
+      <label for="modeSelect">Mode indikator:</label>
+      <select id="modeSelect">
+        <option value="otomatis">Otomatis</option>
+        <option value="telang">Bunga Telang</option>
+        <option value="kunyit">Kunyit</option>
+      </select>
+
+      <div class="rgb-row">
+        <div class="rgb-preview" id="rgbPreview"></div>
+        <div>
+          <b>RGB Sampel:</b>
+          <div id="rgbText">(0, 0, 0)</div>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button class="btn-primary" onclick="analyzeNow()">Analisis sekarang</button>
+      </div>
+
+      <h2 style="margin-top: 26px;">3. Baseline Normal</h2>
+
+      <div class="button-row">
+        <button class="btn-green" onclick="saveBaseline()">Simpan baseline normal</button>
+        <button class="btn-red" onclick="clearBaseline()">Hapus baseline</button>
+      </div>
+
+      <div class="baseline-status" id="baselineStatus">Baseline belum disimpan.</div>
+
+      <div class="tips">
+        <b>Tips pemakaian:</b>
+        <ul>
+          <li>Gunakan cahaya stabil dan latar polos.</li>
+          <li>Simpan baseline dari strip yang belum dicelup.</li>
+          <li>Ambil foto sesudah reaksi dengan posisi yang sama.</li>
+          <li>Geser dan sesuaikan ukuran bingkai sampai pas pada area warna strip.</li>
+        </ul>
+      </div>
+    </aside>
   </div>
 
+  <section class="result-card" id="resultSection">
+    <h2>Hasil Utama</h2>
+    <p class="small">Belum ada hasil. Silakan upload gambar/kamera, lalu klik Analisis sekarang.</p>
+  </section>
+
+  <canvas id="workCanvas"></canvas>
+
   <script>
+    /*
+      Catatan:
+      Data jurnal Telang yang kamu kirim memuat pH, sampel, panjang gelombang maksimum,
+      absorbansi, absorbed color, dan complementary color.
+      Karena jurnal tersebut tidak memberi angka RGB langsung, nilai rgb di bawah ini
+      adalah pendekatan digital dari warna complementary color agar sistem tetap bisa
+      membandingkan warna sampel.
+    */
+
+    const TELANG_REFERENCES = [
+      {
+        ph: 1,
+        sample: "HCl 0,1 M",
+        wavelength: 542,
+        absorbance: 0.4603,
+        absorbedColor: "Green",
+        complementaryColor: "Purple",
+        rgb: [128, 0, 128],
+        kategori: "Asam sangat kuat",
+        warna: "Purple"
+      },
+      {
+        ph: 2,
+        sample: "HCl 0,01 M",
+        wavelength: 550,
+        absorbance: 0.41059,
+        absorbedColor: "Green",
+        complementaryColor: "Purple",
+        rgb: [138, 20, 145],
+        kategori: "Asam sangat kuat",
+        warna: "Purple"
+      },
+      {
+        ph: 3,
+        sample: "HCl 0,001 M",
+        wavelength: 572,
+        absorbance: 0.38021,
+        absorbedColor: "Yellow-Green",
+        complementaryColor: "Violet",
+        rgb: [148, 65, 190],
+        kategori: "Asam kuat",
+        warna: "Violet"
+      },
+      {
+        ph: 4,
+        sample: "HCl 0,0001 M",
+        wavelength: 572,
+        absorbance: 0.41137,
+        absorbedColor: "Yellow-Green",
+        complementaryColor: "Violet",
+        rgb: [138, 60, 185],
+        kategori: "Asam kuat",
+        warna: "Violet"
+      },
+      {
+        ph: 5,
+        sample: "HCl 0,00001 M",
+        wavelength: 572,
+        absorbance: 0.50805,
+        absorbedColor: "Yellow-Green",
+        complementaryColor: "Violet",
+        rgb: [125, 55, 175],
+        kategori: "Asam",
+        warna: "Violet"
+      },
+      {
+        ph: 6,
+        sample: "HCl 0,000001 M",
+        wavelength: 616,
+        absorbance: 0.5342,
+        absorbedColor: "Red",
+        complementaryColor: "Blue-Green",
+        rgb: [0, 120, 150],
+        kategori: "Asam lemah",
+        warna: "Blue-Green"
+      },
+      {
+        ph: 7,
+        sample: "H2O",
+        wavelength: 620,
+        absorbance: 0.5762,
+        absorbedColor: "Red",
+        complementaryColor: "Blue-Green",
+        rgb: [0, 135, 160],
+        kategori: "Netral",
+        warna: "Blue-Green"
+      },
+      {
+        ph: 8,
+        sample: "NaOH 0,000001 M",
+        wavelength: 620,
+        absorbance: 0.62785,
+        absorbedColor: "Red",
+        complementaryColor: "Blue-Green",
+        rgb: [0, 145, 165],
+        kategori: "Basa ringan",
+        warna: "Blue-Green"
+      },
+      {
+        ph: 9,
+        sample: "NaOH 0,00001 M",
+        wavelength: 626,
+        absorbance: 0.64036,
+        absorbedColor: "Red",
+        complementaryColor: "Blue-Green",
+        rgb: [0, 150, 155],
+        kategori: "Basa ringan",
+        warna: "Blue-Green"
+      },
+      {
+        ph: 10,
+        sample: "NaOH 0,0001 M",
+        wavelength: 626,
+        absorbance: 0.55047,
+        absorbedColor: "Red",
+        complementaryColor: "Blue-Green",
+        rgb: [0, 140, 150],
+        kategori: "Basa",
+        warna: "Blue-Green"
+      },
+      {
+        ph: 11,
+        sample: "NaOH 0,001 M",
+        wavelength: 400,
+        absorbance: 0.67913,
+        absorbedColor: "Violet",
+        complementaryColor: "Yellow-Green",
+        rgb: [155, 190, 60],
+        kategori: "Basa kuat",
+        warna: "Yellow-Green"
+      },
+      {
+        ph: 12,
+        sample: "NaOH 0,01 M",
+        wavelength: 400,
+        absorbance: 0.81275,
+        absorbedColor: "Violet",
+        complementaryColor: "Yellow-Green",
+        rgb: [170, 205, 50],
+        kategori: "Basa sangat kuat",
+        warna: "Yellow-Green"
+      },
+      {
+        ph: 13,
+        sample: "NaOH 0,1 M",
+        wavelength: 400,
+        absorbance: 0.68581,
+        absorbedColor: "Violet",
+        complementaryColor: "Yellow-Green",
+        rgb: [185, 210, 45],
+        kategori: "Basa sangat kuat",
+        warna: "Yellow-Green"
+      },
+      {
+        ph: 14,
+        sample: "NaOH 1 M",
+        wavelength: 400,
+        absorbance: 0.73081,
+        absorbedColor: "Violet",
+        complementaryColor: "Yellow-Green",
+        rgb: [195, 215, 40],
+        kategori: "Basa sangat kuat",
+        warna: "Yellow-Green"
+      }
+    ];
+
+    const KUNYIT_REFERENCES = [
+      {
+        key: "asam-netral",
+        rgb: [220, 195, 72],
+        warna: "Kuning",
+        kategori: "Asam–Netral"
+      },
+      {
+        key: "transisi",
+        rgb: [205, 175, 66],
+        warna: "Kuning tua",
+        kategori: "Transisi"
+      },
+      {
+        key: "basa",
+        rgb: [185, 145, 58],
+        warna: "Kuning kecoklatan",
+        kategori: "Basa"
+      },
+      {
+        key: "basa-kuat",
+        rgb: [165, 105, 52],
+        warna: "Coklat-oranye",
+        kategori: "Basa kuat"
+      }
+    ];
+
+    const TELANG_BLANK = [174, 176, 175];
+    const KUNYIT_BLANK = [220, 195, 72];
+
     const previewBox = document.getElementById("previewBox");
+    const previewImage = document.getElementById("previewImage");
+    const cameraVideo = document.getElementById("cameraVideo");
+    const emptyPreview = document.getElementById("emptyPreview");
+    const imageInput = document.getElementById("imageInput");
+    const modeSelect = document.getElementById("modeSelect");
     const roiTelang = document.getElementById("roiTelang");
     const roiKunyit = document.getElementById("roiKunyit");
+    const rgbPreview = document.getElementById("rgbPreview");
+    const rgbText = document.getElementById("rgbText");
+    const baselineStatus = document.getElementById("baselineStatus");
+    const resultSection = document.getElementById("resultSection");
+    const workCanvas = document.getElementById("workCanvas");
 
-    let roiState = {
-      telang: { x: 0.1, y: 0.1, w: 0.3, h: 0.2 },
-      kunyit: { x: 0.5, y: 0.5, w: 0.3, h: 0.2 }
+    let currentInputMode = "upload";
+    let currentFacingMode = "environment";
+    let cameraStream = null;
+    let lastMainRGB = [0, 0, 0];
+
+    const roiState = {
+      telang: { x: 0.16, y: 0.42, w: 0.68, h: 0.13 },
+      kunyit: { x: 0.16, y: 0.60, w: 0.68, h: 0.13 }
     };
 
-    function clamp(value, min, max) { return Math.min(Math.max(value, min), max); }
+    let baseline = loadBaseline();
+
+    function setInputMode(mode) {
+      currentInputMode = mode;
+      document.getElementById("cameraButtons").style.display = mode === "camera" ? "flex" : "none";
+      updateROIVisibility();
+    }
+
+    imageInput.addEventListener("change", function () {
+      const file = this.files[0];
+      if (!file) return;
+
+      stopCamera();
+
+      const reader = new FileReader();
+
+      reader.onload = function (e) {
+        previewImage.src = e.target.result;
+        previewImage.style.display = "block";
+        cameraVideo.style.display = "none";
+        emptyPreview.style.display = "none";
+        currentInputMode = "upload";
+        updateROIVisibility();
+      };
+
+      reader.readAsDataURL(file);
+    });
+
+    modeSelect.addEventListener("change", function () {
+      updateROIVisibility();
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+        <p class="small">Mode diubah. Silakan klik Analisis sekarang.</p>
+      `;
+    });
+
+    function updateROIVisibility() {
+      const mode = modeSelect.value;
+
+      if (mode === "otomatis") {
+        roiTelang.style.display = "block";
+        roiKunyit.style.display = "block";
+      } else if (mode === "telang") {
+        roiTelang.style.display = "block";
+        roiKunyit.style.display = "none";
+      } else if (mode === "kunyit") {
+        roiTelang.style.display = "none";
+        roiKunyit.style.display = "block";
+      }
+
+      applyROIPosition();
+    }
 
     function applyROIPosition() {
-      Object.keys(roiState).forEach(key => {
-        const el = key === "telang" ? roiTelang : roiKunyit;
-        const state = roiState[key];
-        el.style.left = state.x * 100 + "%";
-        el.style.top = state.y * 100 + "%";
-        el.style.width = state.w * 100 + "%";
-        el.style.height = state.h * 100 + "%";
-      });
+      applyOneROI(roiTelang, roiState.telang);
+      applyOneROI(roiKunyit, roiState.kunyit);
     }
-    applyROIPosition();
+
+    function applyOneROI(el, state) {
+      el.style.left = `${state.x * 100}%`;
+      el.style.top = `${state.y * 100}%`;
+      el.style.width = `${state.w * 100}%`;
+      el.style.height = `${state.h * 100}%`;
+    }
 
     function makeInteractiveROI(el, key) {
-      let mode = null, startX = 0, startY = 0, startState = null;
+      let mode = null;
+      let startX = 0;
+      let startY = 0;
+      let startState = null;
+
       const handle = el.querySelector(".resize-handle");
 
-      el.addEventListener("pointerdown", e => {
+      el.addEventListener("pointerdown", function (e) {
         if (e.target === handle) return;
-        mode = "drag"; startX = e.clientX; startY = e.clientY;
-        startState = { ...roiState[key] }; el.setPointerCapture(e.pointerId);
+
+        mode = "drag";
+        startX = e.clientX;
+        startY = e.clientY;
+        startState = { ...roiState[key] };
+        el.setPointerCapture(e.pointerId);
       });
 
-      handle.addEventListener("pointerdown", e => {
+      handle.addEventListener("pointerdown", function (e) {
         e.stopPropagation();
-        mode = "resize"; startX = e.clientX; startY = e.clientY;
-        startState = { ...roiState[key] }; handle.setPointerCapture(e.pointerId);
+
+        mode = "resize";
+        startX = e.clientX;
+        startY = e.clientY;
+        startState = { ...roiState[key] };
+        handle.setPointerCapture(e.pointerId);
       });
+
+      el.addEventListener("pointermove", handlePointerMove);
+      handle.addEventListener("pointermove", handlePointerMove);
+
+      el.addEventListener("pointerup", stopPointerAction);
+      handle.addEventListener("pointerup", stopPointerAction);
+
+      el.addEventListener("pointercancel", stopPointerAction);
+      handle.addEventListener("pointercancel", stopPointerAction);
 
       function handlePointerMove(e) {
         if (!mode) return;
+
         const rect = previewBox.getBoundingClientRect();
         const dx = (e.clientX - startX) / rect.width;
         const dy = (e.clientY - startY) / rect.height;
@@ -159,65 +811,647 @@
           roiState[key].x = clamp(startState.x + dx, 0, 1 - roiState[key].w);
           roiState[key].y = clamp(startState.y + dy, 0, 1 - roiState[key].h);
         }
+
         if (mode === "resize") {
-          const minW = 0.10, minH = 0.05;
+          const minW = 0.08;
+          const minH = 0.04;
+
           roiState[key].w = clamp(startState.w + dx, minW, 1 - roiState[key].x);
           roiState[key].h = clamp(startState.h + dy, minH, 1 - roiState[key].y);
         }
+
         applyROIPosition();
       }
 
-      function stopPointerAction() { mode = null; }
-
-      el.addEventListener("pointermove", handlePointerMove);
-      handle.addEventListener("pointermove", handlePointerMove);
-      el.addEventListener("pointerup", stopPointerAction);
-      handle.addEventListener("pointerup", stopPointerAction);
-      el.addEventListener("pointercancel", stopPointerAction);
-      handle.addEventListener("pointercancel", stopPointerAction);
+      function stopPointerAction() {
+        mode = null;
+      }
     }
 
     makeInteractiveROI(roiTelang, "telang");
     makeInteractiveROI(roiKunyit, "kunyit");
 
-    const TELANG_REFERENCES = [
-      { ph:1, sample:"HCl 0,1 M", wavelength:542, absorbance:0.4603, absorbedColor:"Green", complementaryColor:"Purple"},
-      { ph:2, sample:"HCl 0,01 M", wavelength:550, absorbance:0.41059, absorbedColor:"Green", complementaryColor:"Purple"},
-      { ph:3, sample:"HCl 0,001 M", wavelength:572, absorbance:0.38021, absorbedColor:"Yellow-Green", complementaryColor:"Violet"},
-      { ph:4, sample:"HCl 0,0001 M", wavelength:572, absorbance:0.41137, absorbedColor:"Yellow-Green", complementaryColor:"Violet"},
-      { ph:5, sample:"HCl 0,00001 M", wavelength:572, absorbance:0.50805, absorbedColor:"Yellow-Green", complementaryColor:"Violet"},
-      { ph:6, sample:"HCl 0,000001 M", wavelength:616, absorbance:0.5342, absorbedColor:"Red", complementaryColor:"Blue-Green"},
-      { ph:7, sample:"H2O", wavelength:620, absorbance:0.5762, absorbedColor:"Red", complementaryColor:"Blue-Green"},
-      { ph:8, sample:"NaOH 0,000001 M", wavelength:620, absorbance:0.62785, absorbedColor:"Red", complementaryColor:"Blue-Green"},
-      { ph:9, sample:"NaOH 0,00001 M", wavelength:626, absorbance:0.64036, absorbedColor:"Red", complementaryColor:"Blue-Green"},
-      { ph:10, sample:"NaOH 0,0001 M", wavelength:626, absorbance:0.55047, absorbedColor:"Red", complementaryColor:"Blue-Green"},
-      { ph:11, sample:"NaOH 0,001 M", wavelength:400, absorbance:0.67913, absorbedColor:"Violet", complementaryColor:"Yellow-Green"},
-      { ph:12, sample:"NaOH 0,01 M", wavelength:400, absorbance:0.81275, absorbedColor:"Violet", complementaryColor:"Yellow-Green"},
-      { ph:13, sample:"NaOH 0,1 M", wavelength:400, absorbance:0.68581, absorbedColor:"Violet", complementaryColor:"Yellow-Green"},
-      { ph:14, sample:"NaOH 1 M", wavelength:400, absorbance:0.73081, absorbedColor:"Violet", complementaryColor:"Yellow-Green"}
-    ];
+    function clamp(value, min, max) {
+      return Math.max(min, Math.min(max, value));
+    }
 
-    const tableDiv = document.getElementById("telangTable");
-    tableDiv.innerHTML = `<table>
-      <thead>
-        <tr>
-          <th>pH</th><th>Sampel</th><th>λ Maks</th><th>Absorbansi</th><th>Absorbed Color</th><th>Complementary Color</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${TELANG_REFERENCES.map(item => `
-          <tr>
-            <td>${item.ph}</td>
-            <td>${item.sample}</td>
-            <td>${item.wavelength}</td>
-            <td>${item.absorbance}</td>
-            <td>${item.absorbedColor}</td>
-            <td>${item.complementaryColor}</td>
-          </tr>
-        `).join("")}
-      </tbody>
-    </table>`;
+    async function startCamera(facingMode = "environment") {
+      setInputMode("camera");
+      stopCamera();
+
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            facingMode: facingMode,
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
+        });
+
+        cameraVideo.srcObject = cameraStream;
+        cameraVideo.style.display = "block";
+        previewImage.style.display = "none";
+        emptyPreview.style.display = "none";
+        currentFacingMode = facingMode;
+        updateROIVisibility();
+      } catch (error) {
+        alert("Kamera tidak dapat dibuka. Pastikan izin kamera sudah aktif.");
+      }
+    }
+
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+    }
+
+    function switchCamera() {
+      currentFacingMode = currentFacingMode === "environment" ? "user" : "environment";
+      startCamera(currentFacingMode);
+    }
+
+    async function toggleFlash() {
+      if (!cameraStream) {
+        alert("Kamera belum aktif.");
+        return;
+      }
+
+      const track = cameraStream.getVideoTracks()[0];
+      const capabilities = track.getCapabilities();
+
+      if (!capabilities.torch) {
+        alert("Flash tidak didukung oleh perangkat/browser ini.");
+        return;
+      }
+
+      const currentTorch = track.getSettings().torch || false;
+
+      try {
+        await track.applyConstraints({
+          advanced: [{ torch: !currentTorch }]
+        });
+      } catch (error) {
+        alert("Flash gagal diaktifkan.");
+      }
+    }
+
+    function takeSnapshot() {
+      if (!cameraStream || !cameraVideo.videoWidth) {
+        alert("Kamera belum aktif.");
+        return;
+      }
+
+      const canvas = workCanvas;
+      const ctx = canvas.getContext("2d");
+
+      canvas.width = cameraVideo.videoWidth;
+      canvas.height = cameraVideo.videoHeight;
+      ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
+
+      previewImage.src = canvas.toDataURL("image/png");
+      previewImage.style.display = "block";
+      cameraVideo.style.display = "none";
+      emptyPreview.style.display = "none";
+
+      stopCamera();
+      currentInputMode = "upload";
+      updateROIVisibility();
+    }
+
+    function getActiveSource() {
+      if (
+        previewImage.style.display === "block" &&
+        previewImage.complete &&
+        previewImage.naturalWidth
+      ) {
+        return {
+          element: previewImage,
+          width: previewImage.naturalWidth,
+          height: previewImage.naturalHeight,
+          type: "image"
+        };
+      }
+
+      if (cameraVideo.style.display === "block" && cameraVideo.videoWidth) {
+        return {
+          element: cameraVideo,
+          width: cameraVideo.videoWidth,
+          height: cameraVideo.videoHeight,
+          type: "video"
+        };
+      }
+
+      return null;
+    }
+
+    function drawSourceToCanvas() {
+      const source = getActiveSource();
+      if (!source) return null;
+
+      workCanvas.width = source.width;
+      workCanvas.height = source.height;
+
+      const ctx = workCanvas.getContext("2d");
+      ctx.drawImage(source.element, 0, 0, source.width, source.height);
+
+      return {
+        ctx,
+        width: source.width,
+        height: source.height
+      };
+    }
+
+    function readAverageRGB(key) {
+      const drawn = drawSourceToCanvas();
+
+      if (!drawn) {
+        alert("Belum ada gambar/kamera yang aktif.");
+        return null;
+      }
+
+      const state = roiState[key];
+
+      const x = Math.round(state.x * drawn.width);
+      const y = Math.round(state.y * drawn.height);
+      const w = Math.max(1, Math.round(state.w * drawn.width));
+      const h = Math.max(1, Math.round(state.h * drawn.height));
+
+      const data = drawn.ctx.getImageData(x, y, w, h).data;
+
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      let count = 0;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const rr = data[i];
+        const gg = data[i + 1];
+        const bb = data[i + 2];
+
+        const brightness = (rr + gg + bb) / 3;
+
+        if (brightness < 8 || brightness > 248) continue;
+
+        r += rr;
+        g += gg;
+        b += bb;
+        count++;
+      }
+
+      if (count === 0) return [0, 0, 0];
+
+      return [
+        Math.round(r / count),
+        Math.round(g / count),
+        Math.round(b / count)
+      ];
+    }
+
+    function normalizeRGB(rgb) {
+      const sum = rgb[0] + rgb[1] + rgb[2] || 1;
+
+      return [
+        rgb[0] / sum,
+        rgb[1] / sum,
+        rgb[2] / sum
+      ];
+    }
+
+    function colorDistance(rgbA, rgbB) {
+      const a = normalizeRGB(rgbA);
+      const b = normalizeRGB(rgbB);
+
+      return Math.sqrt(
+        Math.pow(a[0] - b[0], 2) +
+        Math.pow(a[1] - b[1], 2) +
+        Math.pow(a[2] - b[2], 2)
+      );
+    }
+
+    function applyBaselineCorrection(sample, key) {
+      if (!baseline || !baseline[key]) return sample;
+
+      const blank = key === "telang" ? TELANG_BLANK : KUNYIT_BLANK;
+      const base = baseline[key];
+
+      return [
+        clampRGB(sample[0] * blank[0] / Math.max(1, base[0])),
+        clampRGB(sample[1] * blank[1] / Math.max(1, base[1])),
+        clampRGB(sample[2] * blank[2] / Math.max(1, base[2]))
+      ];
+    }
+
+    function clampRGB(value) {
+      return Math.max(0, Math.min(255, Math.round(value)));
+    }
+
+    function findNearestReference(sampleRgb, references) {
+      let best = null;
+      let second = null;
+
+      references.forEach(ref => {
+        const distance = colorDistance(sampleRgb, ref.rgb);
+        const item = { ...ref, distance };
+
+        if (!best || distance < best.distance) {
+          second = best;
+          best = item;
+        } else if (!second || distance < second.distance) {
+          second = item;
+        }
+      });
+
+      let confidenceValue = 100 - best.distance * 330;
+
+      if (second) {
+        const gap = second.distance - best.distance;
+        confidenceValue += gap * 180;
+      }
+
+      confidenceValue = Math.round(clamp(confidenceValue, 0, 100));
+
+      let confidenceLabel = "Rendah";
+      let status = "Perlu cek ulang";
+
+      if (confidenceValue >= 75) {
+        confidenceLabel = "Tinggi";
+        status = "Cocok";
+      } else if (confidenceValue >= 50) {
+        confidenceLabel = "Sedang";
+        status = "Keyakinan sedang";
+      }
+
+      return {
+        best,
+        second,
+        confidenceValue,
+        confidenceLabel,
+        status
+      };
+    }
+
+    function analyzeTelang() {
+      const rawRgb = readAverageRGB("telang");
+      if (!rawRgb) return null;
+
+      const correctedRgb = applyBaselineCorrection(rawRgb, "telang");
+      const match = findNearestReference(correctedRgb, TELANG_REFERENCES);
+
+      return {
+        indicator: "Bunga Telang",
+        rawRgb,
+        correctedRgb,
+        ...match
+      };
+    }
+
+    function analyzeKunyit() {
+      const rawRgb = readAverageRGB("kunyit");
+      if (!rawRgb) return null;
+
+      const correctedRgb = applyBaselineCorrection(rawRgb, "kunyit");
+      const match = findNearestReference(correctedRgb, KUNYIT_REFERENCES);
+
+      return {
+        indicator: "Kunyit",
+        rawRgb,
+        correctedRgb,
+        ...match
+      };
+    }
+
+    function analyzeNow() {
+      const mode = modeSelect.value;
+
+      if (!getActiveSource()) {
+        alert("Upload gambar atau buka kamera terlebih dahulu.");
+        return;
+      }
+
+      if (mode === "telang") {
+        const telang = analyzeTelang();
+        if (!telang) return;
+
+        lastMainRGB = telang.correctedRgb;
+        updateRGBPreview(lastMainRGB);
+        renderTelangResult(telang);
+      }
+
+      if (mode === "kunyit") {
+        const kunyit = analyzeKunyit();
+        if (!kunyit) return;
+
+        lastMainRGB = kunyit.correctedRgb;
+        updateRGBPreview(lastMainRGB);
+        renderKunyitResult(kunyit);
+      }
+
+      if (mode === "otomatis") {
+        const telang = analyzeTelang();
+        const kunyit = analyzeKunyit();
+
+        if (!telang || !kunyit) return;
+
+        lastMainRGB = telang.correctedRgb;
+        updateRGBPreview(lastMainRGB);
+        renderAutomaticResult(telang, kunyit);
+      }
+    }
+
+    function updateRGBPreview(rgb) {
+      rgbPreview.style.background = `rgb(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+      rgbText.textContent = `(${rgb[0]}, ${rgb[1]}, ${rgb[2]})`;
+    }
+
+    function getBadgeClass(status) {
+      if (status === "Cocok") return "ok";
+      if (status === "Keyakinan sedang") return "mid";
+      return "warn";
+    }
+
+    function renderTelangResult(telang) {
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+
+        <div class="badge-row">
+          <span class="badge ${getBadgeClass(telang.status)}">${telang.status}</span>
+          <span class="badge">pH ${telang.best.ph}</span>
+          <span class="badge">${telang.best.kategori}</span>
+          <span class="badge">Keyakinan ${telang.confidenceValue}%</span>
+        </div>
+
+        <div class="main-result">
+          <b>Indikator:</b> Bunga Telang<br>
+          <b>Warna acuan terdekat:</b> ${telang.best.warna}<br>
+          <b>Estimasi pH:</b> pH ${telang.best.ph}<br>
+          <b>Interpretasi:</b> Sampel mendekati kategori <b>${telang.best.kategori}</b>.
+        </div>
+
+        ${renderDetailTelang(telang)}
+        ${renderReferenceDetails()}
+      `;
+    }
+
+    function renderKunyitResult(kunyit) {
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+
+        <div class="badge-row">
+          <span class="badge ${getBadgeClass(kunyit.status)}">${kunyit.status}</span>
+          <span class="badge">${kunyit.best.kategori}</span>
+          <span class="badge">Keyakinan ${kunyit.confidenceValue}%</span>
+        </div>
+
+        <div class="main-result">
+          <b>Indikator:</b> Kunyit<br>
+          <b>Warna terdekat:</b> ${kunyit.best.warna}<br>
+          <b>Kategori:</b> ${kunyit.best.kategori}<br>
+          <b>Interpretasi:</b> Kunyit digunakan sebagai indikator pendukung untuk melihat kecenderungan basa.
+        </div>
+
+        ${renderDetailKunyit(kunyit)}
+        ${renderReferenceDetails()}
+      `;
+    }
+
+    function renderAutomaticResult(telang, kunyit) {
+      const combined = combineAutomaticResult(telang, kunyit);
+
+      resultSection.innerHTML = `
+        <h2>Hasil Utama</h2>
+
+        <div class="badge-row">
+          <span class="badge ${getBadgeClass(combined.status)}">${combined.status}</span>
+          <span class="badge">pH ${telang.best.ph}</span>
+          <span class="badge">${telang.best.kategori}</span>
+          <span class="badge">Validasi: ${combined.validation}</span>
+        </div>
+
+        <div class="main-result">
+          <b>Hasil gabungan:</b> pH ${telang.best.ph} - ${telang.best.kategori}<br>
+          <b>Indikator utama:</b> Bunga Telang<br>
+          <b>Indikator pendukung:</b> Kunyit<br>
+          <b>Interpretasi:</b> ${combined.message}
+        </div>
+
+        <details>
+          <summary>Detail hasil Telang dan Kunyit</summary>
+          ${renderDetailTelang(telang)}
+          ${renderDetailKunyit(kunyit)}
+        </details>
+
+        ${renderReferenceDetails()}
+      `;
+    }
+
+    function combineAutomaticResult(telang, kunyit) {
+      const ph = telang.best.ph;
+      const kunyitKey = kunyit.best.key;
+
+      let status = "Cocok";
+      let validation = "Mendukung";
+      let message = "";
+
+      const kunyitBasa = kunyitKey === "basa" || kunyitKey === "basa-kuat";
+      const kunyitNonBasa = kunyitKey === "asam-netral" || kunyitKey === "transisi";
+
+      if (ph >= 8 && kunyitBasa) {
+        status = "Cocok";
+        validation = "Mendukung";
+        message = "Bunga Telang menunjukkan kecenderungan basa dan Kunyit juga mendukung arah basa.";
+      } else if (ph <= 7 && kunyitNonBasa) {
+        status = "Cocok";
+        validation = "Mendukung";
+        message = "Bunga Telang menunjukkan asam sampai netral dan Kunyit tidak menunjukkan kecenderungan basa kuat.";
+      } else if (ph >= 8 && kunyitNonBasa) {
+        status = "Keyakinan sedang";
+        validation = "Kurang kuat";
+        message = "Bunga Telang mengarah ke basa, tetapi Kunyit belum menunjukkan perubahan basa yang kuat. Disarankan ulangi pembacaan dengan cahaya stabil.";
+      } else {
+        status = "Perlu cek ulang";
+        validation = "Tidak konsisten";
+        message = "Hasil Telang dan Kunyit belum konsisten. Periksa posisi strip, pencahayaan, dan baseline.";
+      }
+
+      if (telang.confidenceValue < 50) {
+        status = "Perlu cek ulang";
+        validation = "Rendah";
+        message = "Kecocokan warna Telang rendah. Hasil belum cukup kuat untuk dijadikan kesimpulan.";
+      }
+
+      return { status, validation, message };
+    }
+
+    function renderDetailTelang(telang) {
+      return `
+        <div style="margin-top:18px;">
+          <h3>Detail Bunga Telang</h3>
+          <p>
+            <b>RGB mentah:</b> (${telang.rawRgb.join(", ")})<br>
+            <b>RGB terkoreksi:</b> (${telang.correctedRgb.join(", ")})<br>
+            <b>RGB acuan digital:</b> (${telang.best.rgb.join(", ")})<br>
+            <b>pH:</b> ${telang.best.ph}<br>
+            <b>Sampel acuan:</b> ${telang.best.sample}<br>
+            <b>λ maksimum:</b> ${telang.best.wavelength} nm<br>
+            <b>Absorbansi:</b> ${telang.best.absorbance}<br>
+            <b>Absorbed color:</b> ${telang.best.absorbedColor}<br>
+            <b>Complementary color:</b> ${telang.best.complementaryColor}<br>
+            <b>Kategori:</b> ${telang.best.kategori}<br>
+            <b>Keyakinan:</b> ${telang.confidenceValue}%
+          </p>
+        </div>
+      `;
+    }
+
+    function renderDetailKunyit(kunyit) {
+      return `
+        <div style="margin-top:18px;">
+          <h3>Detail Kunyit</h3>
+          <p>
+            <b>RGB mentah:</b> (${kunyit.rawRgb.join(", ")})<br>
+            <b>RGB terkoreksi:</b> (${kunyit.correctedRgb.join(", ")})<br>
+            <b>RGB acuan:</b> (${kunyit.best.rgb.join(", ")})<br>
+            <b>Kategori:</b> ${kunyit.best.kategori}<br>
+            <b>Warna:</b> ${kunyit.best.warna}<br>
+            <b>Keyakinan:</b> ${kunyit.confidenceValue}%
+          </p>
+        </div>
+      `;
+    }
+
+    function renderReferenceDetails() {
+      return `
+        <details>
+          <summary>Lihat acuan indikator</summary>
+
+          <h3>Acuan Bunga Telang Berdasarkan Jurnal</h3>
+          <p class="small">
+            Tabel ini mengikuti data jurnal yang memuat pH, sampel, panjang gelombang maksimum,
+            absorbansi, absorbed color, dan complementary color. Angka RGB digital digunakan
+            sebagai pendekatan sistem untuk proses pembacaan warna.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>pH</th>
+                <th>Sampel</th>
+                <th>λ Maks</th>
+                <th>Absorbansi</th>
+                <th>Absorbed Color</th>
+                <th>Complementary Color</th>
+                <th>RGB Digital</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${TELANG_REFERENCES.map(item => `
+                <tr>
+                  <td>pH ${item.ph}</td>
+                  <td>${item.sample}</td>
+                  <td>${item.wavelength} nm</td>
+                  <td>${item.absorbance}</td>
+                  <td>${item.absorbedColor}</td>
+                  <td>${item.complementaryColor}</td>
+                  <td>(${item.rgb.join(", ")})</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+
+          <h3>Kategori Kunyit</h3>
+          <p class="small">
+            Data kunyit digunakan sebagai indikator pendukung. Nilai ini sebaiknya dikalibrasi lagi
+            menggunakan sampel nyata test kit URO-INK.
+          </p>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Kategori</th>
+                <th>Warna</th>
+                <th>RGB</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${KUNYIT_REFERENCES.map(item => `
+                <tr>
+                  <td>${item.kategori}</td>
+                  <td>${item.warna}</td>
+                  <td>(${item.rgb.join(", ")})</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </details>
+      `;
+    }
+
+    function saveBaseline() {
+      if (!getActiveSource()) {
+        alert("Upload gambar atau buka kamera terlebih dahulu.");
+        return;
+      }
+
+      const mode = modeSelect.value;
+      const newBaseline = baseline || {};
+
+      if (mode === "otomatis" || mode === "telang") {
+        const rgbTelang = readAverageRGB("telang");
+        if (rgbTelang) newBaseline.telang = rgbTelang;
+      }
+
+      if (mode === "otomatis" || mode === "kunyit") {
+        const rgbKunyit = readAverageRGB("kunyit");
+        if (rgbKunyit) newBaseline.kunyit = rgbKunyit;
+      }
+
+      baseline = newBaseline;
+      localStorage.setItem("uroInkBaseline", JSON.stringify(baseline));
+      updateBaselineStatus();
+
+      alert("Baseline normal berhasil disimpan.");
+    }
+
+    function clearBaseline() {
+      baseline = null;
+      localStorage.removeItem("uroInkBaseline");
+      updateBaselineStatus();
+    }
+
+    function loadBaseline() {
+      try {
+        const saved = localStorage.getItem("uroInkBaseline");
+        return saved ? JSON.parse(saved) : null;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function updateBaselineStatus() {
+      if (!baseline) {
+        baselineStatus.textContent = "Baseline belum disimpan.";
+        return;
+      }
+
+      const parts = [];
+
+      if (baseline.telang) {
+        parts.push(`Telang: (${baseline.telang.join(", ")})`);
+      }
+
+      if (baseline.kunyit) {
+        parts.push(`Kunyit: (${baseline.kunyit.join(", ")})`);
+      }
+
+      baselineStatus.textContent = parts.length
+        ? `Baseline tersimpan - ${parts.join(" | ")}`
+        : "Baseline belum disimpan.";
+    }
+
+    updateROIVisibility();
+    updateBaselineStatus();
   </script>
-
 </body>
 </html>
